@@ -251,10 +251,8 @@ static int clk_debug_measure_get(void *data, u64 *val)
 
 	meas_rate = clk_get_rate(hw->clk);
 	par = clk_hw_get_parent(measure);
-	if (!par) {
-		mutex_unlock(&clk_debug_lock);
+	if (!par)
 		return -EINVAL;
-	}
 
 	sw_rate = clk_get_rate(par->clk);
 	if (sw_rate && meas_rate >= (sw_rate * 2))

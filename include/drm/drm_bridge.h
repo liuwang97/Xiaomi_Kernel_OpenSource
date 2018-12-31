@@ -190,10 +190,6 @@ struct drm_bridge_funcs {
 	 * The enable callback is optional.
 	 */
 	void (*enable)(struct drm_bridge *bridge);
-
-	void (*disp_param_set)(struct drm_bridge *bridge, int cmd);
-	int (*disp_get_panel_info)(struct drm_bridge *bridge, char *name);
-	ssize_t (*disp_param_get)(struct drm_bridge *bridge, char *buf);
 };
 
 /**
@@ -217,8 +213,6 @@ struct drm_bridge {
 
 	const struct drm_bridge_funcs *funcs;
 	void *driver_private;
-	struct mutex lock;
-	bool is_dsi_drm_bridge;
 };
 
 int drm_bridge_add(struct drm_bridge *bridge);
@@ -237,7 +231,6 @@ void drm_bridge_mode_set(struct drm_bridge *bridge,
 			struct drm_display_mode *adjusted_mode);
 void drm_bridge_pre_enable(struct drm_bridge *bridge);
 void drm_bridge_enable(struct drm_bridge *bridge);
-int dsi_bridge_interface_enable(int timeout);
 int drm_bridge_connector_init(struct drm_bridge *bridge,
 	struct drm_connector *connector);
 

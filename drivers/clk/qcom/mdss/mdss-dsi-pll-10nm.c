@@ -686,7 +686,7 @@ static int dsi_pll_10nm_lock_status(struct mdss_pll_resources *pll)
 				       ((status & BIT(0)) > 0),
 				       delay_us,
 				       timeout_us);
-	if (rc && !pll->handoff_resources)
+	if (rc)
 		pr_err("DSI PLL(%d) lock failed, status=0x%08x\n",
 			pll->index, status);
 
@@ -928,7 +928,7 @@ static unsigned long vco_10nm_recalc_rate(struct clk_hw *hw,
 	struct mdss_pll_resources *pll = vco->priv;
 	int rc;
 	u64 ref_clk = vco->ref_clk_rate;
-	u64 vco_rate = 0;
+	u64 vco_rate;
 	u64 multiplier;
 	u32 frac;
 	u32 dec;
@@ -963,13 +963,8 @@ static unsigned long vco_10nm_recalc_rate(struct clk_hw *hw,
 		return 0;
 	}
 
-	pll->handoff_resources = true;
-	if (dsi_pll_10nm_lock_status(pll)) {
-		pr_debug("PLL not enabled\n");
-		pll->handoff_resources = false;
-		goto end;
-	}
-
+	if (!dsi_pll_10nm_lock_status(pll))
+		pll->handoff_resources = true;
 
 	dec = MDSS_PLL_REG_R(pll->pll_base, PLL_DECIMAL_DIV_START_1);
 	dec &= 0xFF;
@@ -1004,7 +999,6 @@ static unsigned long vco_10nm_recalc_rate(struct clk_hw *hw,
 
 	(void)mdss_pll_resource_enable(pll, false);
 
-end:
 	return (unsigned long)vco_rate;
 }
 
@@ -1670,7 +1664,7 @@ int dsi_pll_clock_register_10nm(struct platform_device *pdev,
 				of_clk_src_onecell_get, clk_data);
 	}
 	if (!rc) {
-		pr_info("Registered DSI PLL ndx=%d, clocks successfully\n", ndx);
+		pr_info("Registered DSI PLL ndx=%d, clocks successfully", ndx);
 
 		return rc;
 	}

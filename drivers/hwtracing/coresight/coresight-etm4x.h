@@ -16,7 +16,6 @@
 #include <asm/local.h>
 #include <linux/spinlock.h>
 #include "coresight-priv.h"
-#include <soc/qcom/memory_dump.h>
 
 /*
  * Device registers:
@@ -348,7 +347,6 @@ struct etmv4_config {
  * @lpoverride:	If the implementation can support low-power state over.
  * @tupwr_disable:	If disable the support of keeping trace unit powered.
  * @config:	structure holding configuration parameters.
- * @reg_data:   MSM memory dump data
  */
 struct etmv4_drvdata {
 	void __iomem			*base;
@@ -396,7 +394,6 @@ struct etmv4_drvdata {
 	bool				lpoverride;
 	bool				tupwr_disable;
 	struct etmv4_config		config;
-	struct msm_dump_data		reg_data;
 };
 
 /* Address comparator access types */

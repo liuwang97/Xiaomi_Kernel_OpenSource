@@ -13,7 +13,7 @@
 #ifndef __MINIDUMP_H
 #define __MINIDUMP_H
 
-#define MAX_NAME_LENGTH		16
+#define MAX_NAME_LENGTH		12
 /* md_region -  Minidump table entry
  * @name:	Entry name, Minidump will dump binary with this name.
  * @id:		Entry ID, used only for SDI dumps.
@@ -35,19 +35,17 @@ struct md_region {
  *	Zero: on successful addition
  *	Negetive error number on failures
  */
-#ifdef CONFIG_MINIDUMP
+#ifdef CONFIG_QCOM_MINIDUMP
 extern int msm_minidump_add_region(const struct md_region *entry);
-extern bool minidump_enabled;
+extern bool msm_minidump_enabled(void);
+extern void dump_stack_minidump(u64 sp);
 #else
 static inline int msm_minidump_add_region(const struct md_region *entry)
 {
-	return -ENODEV;
+	/* Return quietly, if minidump is not supported */
+	return 0;
 }
 static inline bool msm_minidump_enabled(void) { return false; }
-#endif
-#ifdef CONFIG_COMMON_LOG
-extern void dump_stack_minidump(u64 sp);
-#else
 static inline void dump_stack_minidump(u64 sp) {}
 #endif
 #endif

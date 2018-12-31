@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2014-2018, The Linux Foundation. All rights reserved.
- * Copyright (C) 2018 XiaoMi, Inc.
  * Copyright (C) 2013 Red Hat
  * Author: Rob Clark <robdclark@gmail.com>
  *
@@ -260,7 +259,6 @@ struct sde_encoder_virt {
 	struct kthread_work input_event_work;
 	struct kthread_work esd_trigger_work;
 	struct input_handler *input_handler;
-	bool input_handler_registered;
 	struct msm_display_topology topology;
 	bool vblank_enabled;
 
@@ -743,7 +741,6 @@ void sde_encoder_destroy(struct drm_encoder *drm_enc)
 	if (sde_enc->input_handler) {
 		kfree(sde_enc->input_handler);
 		sde_enc->input_handler = NULL;
-		sde_enc->input_handler_registered = false;
 	}
 
 	kfree(sde_enc);
@@ -2634,7 +2631,6 @@ static int _sde_encoder_input_handler(
 	input_handler->private = sde_enc;
 
 	sde_enc->input_handler = input_handler;
-	sde_enc->input_handler_registered = false;
 
 	return rc;
 }
@@ -2756,14 +2752,12 @@ static void sde_encoder_virt_enable(struct drm_encoder *drm_enc)
 		return;
 	}
 
-	if (sde_enc->input_handler && !sde_enc->input_handler_registered) {
+	if (sde_enc->input_handler) {
 		ret = _sde_encoder_input_handler_register(
 				sde_enc->input_handler);
 		if (ret)
 			SDE_ERROR(
 			"input handler registration failed, rc = %d\n", ret);
-		else
-			sde_enc->input_handler_registered = true;
 	}
 
 	ret = sde_encoder_resource_control(drm_enc, SDE_ENC_RC_EVENT_KICKOFF);
@@ -2841,10 +2835,8 @@ static void sde_encoder_virt_disable(struct drm_encoder *drm_enc)
 
 	SDE_EVT32(DRMID(drm_enc));
 
-	if (sde_enc->input_handler && sde_enc->input_handler_registered) {
+	if (sde_enc->input_handler)
 		input_unregister_handler(sde_enc->input_handler);
-		sde_enc->input_handler_registered = false;
-	}
 
 	/* wait for idle */
 	sde_encoder_wait_for_event(drm_enc, MSM_ENC_TX_COMPLETE);
